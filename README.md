@@ -54,6 +54,12 @@ pnpm install
 pnpm dev        # http://localhost:3000
 ```
 
+To open the project (run the development server on port 3001):
+
+```bash
+pnpm exec next dev --port 3001   # http://localhost:3001
+```
+
 Other scripts:
 
 ```bash
