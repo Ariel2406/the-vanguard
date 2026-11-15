@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atlas, crew assistant</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#040810;--fg:#dff6ff;--mut:#7fa4bd;--rgb:90,209,255;--cy:rgb(var(--rgb));font-family:"Rajdhani",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hidden}
+*{box-sizing:border-box}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(var(--rgb),.06) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,rgba(var(--rgb),.06) 1px,transparent 1px) 0 0/48px 48px;-webkit-mask-image:radial-gradient(circle at 50% 35%,#000,transparent 75%);mask-image:radial-gradient(circle at 50% 35%,#000,transparent 75%)}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block}
+#top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;z-index:5;pointer-events:none;color:var(--mut);font-size:15px;letter-spacing:.06em;background:linear-gradient(rgba(4,8,16,.9),transparent);border-bottom:1px solid rgba(var(--rgb),.2)}
+#top b{color:var(--cy);font-size:24px;font-weight:600;letter-spacing:.3em;text-shadow:0 0 12px var(--cy)}
+#stbar{color:var(--cy);padding:3px 14px;box-shadow:inset 0 0 0 1px var(--cy);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.v{position:fixed;left:0;right:0;bottom:calc(68px + env(safe-area-inset-bottom,0px));padding:0 12px 10px;display:none;z-index:4;pointer-events:none}
+.v.on{display:block}
+.card{pointer-events:auto;position:relative;max-width:560px;margin:0 auto;padding:18px 20px;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),rgba(var(--rgb),.16),transparent 60%),rgba(4,12,24,.86);box-shadow:inset 0 0 0 1px rgba(var(--rgb),.3),inset 0 0 50px rgba(var(--rgb),.07);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);transition:transform .12s}
+.in{max-height:var(--inH,60vh);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--cy) transparent;padding-right:2px}
+.v.on .card{animation:boot .5s cubic-bezier(.2,.8,.2,1)}
+@keyframes boot{0%{opacity:0;transform:scale(1,.04);filter:brightness(3)}60%{opacity:1;transform:scale(1,1.02)}100%{transform:none;filter:none}}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(var(--cy),var(--cy)) 16px 0/28px 2px no-repeat,linear-gradient(var(--cy),var(--cy)) 0 16px/2px 28px no-repeat,linear-gradient(var(--cy),var(--cy)) right 16px bottom 0/28px 2px no-repeat,linear-gradient(var(--cy),var(--cy)) right 0 bottom 16px/2px 28px no-repeat}
+.card::after{content:"";position:absolute;left:0;right:0;top:-50px;height:46px;pointer-events:none;background:linear-gradient(transparent,rgba(var(--rgb),.14),transparent);animation:scan 4.5s linear infinite}
+@keyframes scan{from{top:-50px}to{top:100%}}
+h2{margin:0 0 2px;font-size:22px;font-weight:600;letter-spacing:.08em;color:var(--cy)}
+p.s{margin:0 0 10px;color:var(--mut);font-size:15px;line-height:1.4}
+.n{margin:8px 0 0;color:var(--mut);font-size:13px;line-height:1.3}
+.btn{font:inherit;font-weight:500;letter-spacing:.05em;color:var(--cy);background:rgba(var(--rgb),.07);border:0;box-shadow:inset 0 0 0 1px rgba(var(--rgb),.5);min-height:48px;padding:10px 14px;cursor:pointer;width:100%;margin-top:8px;font-size:17px;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);transition:background .15s,box-shadow .15s,transform .1s}
+.btn:hover{background:rgba(var(--rgb),.22);box-shadow:inset 0 0 0 1px var(--cy),inset 0 0 18px rgba(var(--rgb),.35)}
+.btn:active{transform:scale(.97)}
+.btn.g{color:var(--mut);box-shadow:inset 0 0 0 1px rgba(127,164,189,.4);background:none}
+.two{display:flex;gap:8px}
+.btn:focus-visible,#nav button:focus-visible,#pvBtn:focus-visible,#dial:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+.row{display:flex;justify-content:space-between;color:var(--mut);font-size:14px}
+.res{margin-top:8px;font-size:16px;line-height:1.35}
+#pvBtn{position:relative;display:block;width:min(200px,48vw);aspect-ratio:1;margin:0 auto;padding:0;border:0;background:none;cursor:crosshair;user-select:none;touch-action:manipulation;color:var(--cy)}
+#pvBtn svg{width:100%;height:100%;display:block;overflow:visible}
+#pvBtn.go{filter:drop-shadow(0 0 14px var(--cy))}
+#pvTxt{position:absolute;left:0;right:0;bottom:10%;text-align:center;font-size:19px;font-weight:600;text-shadow:0 0 10px var(--cy);pointer-events:none}
+.rg{fill:none;stroke:var(--cy);stroke-opacity:.35}
+.sw{transform-origin:120px 120px;animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ping{transform-box:fill-box;transform-origin:center;animation:ping .7s ease-out infinite}
+@keyframes ping{from{transform:scale(1);opacity:1}to{transform:scale(3);opacity:0}}
+#pvBars{display:block;width:100%;max-width:260px;margin:6px auto 0}
+#dial,#wave{display:block;width:min(250px,66vw);margin:2px auto;overflow:visible}
+#dial{cursor:pointer;touch-action:none}
+#dial path{fill:rgba(var(--rgb),.14);transition:fill .12s}
+#dial path.on{fill:var(--cy);filter:drop-shadow(0 0 4px var(--cy))}
+#wave rect{fill:var(--cy)}
+#amsT{font-size:21px;margin:4px 0 0;text-align:center;min-height:52px}
+#prof{display:block;width:min(270px,70vw);margin:4px auto 0}
+#prof .g{fill:none;stroke:rgba(var(--rgb),.28)}
+.pb{display:grid;grid-template-columns:118px 1fr 42px;gap:8px;align-items:center;font-size:15px;margin:3px 0}
+.pb i{display:block;height:8px;background:rgba(var(--rgb),.12)}.pb u{display:block;height:100%;background:var(--cy);text-decoration:none;transition:width .6s}
+.pb b{text-align:right;font-weight:500}
+#nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(4,8,16,.92);border-top:1px solid rgba(var(--rgb),.3);z-index:6}
+#nav button{font:inherit;font-size:17px;font-weight:500;letter-spacing:.06em;color:var(--mut);background:none;border:0;height:64px;cursor:pointer;transition:color .15s,background .15s}
+#nav button:hover{background:rgba(var(--rgb),.08)}
+#nav button.on{color:var(--cy);background:linear-gradient(transparent,rgba(var(--rgb),.18));box-shadow:inset 0 2px 0 var(--cy);text-shadow:0 0 10px var(--cy)}
+#nav i{display:block;font-style:normal;font-size:18px;line-height:1.1}
+@media (max-height:700px){p.s{display:none}}
+@media (prefers-reduced-motion:reduce){.card::after,.sw,.ping,.v.on .card{animation:none}}
+[hidden]{display:none!important}.v{max-height:calc(100dvh - 135px);overflow:auto;pointer-events:auto}#phqForm{display:grid;gap:10px}#phqForm select{width:100%;font:inherit;background:#0b1b2b;border:1px solid #3f6580;color:var(--fg);padding:8px;border-radius:6px}a{color:var(--cy)}@media(max-width:430px){#top b{font-size:18px}#top span{font-size:11px}#nav button{font-size:15px}.card{padding:14px}}#nav button{font-size:clamp(12px,2.8vw,16px)}#eyeVideo{display:block;width:100%;max-height:170px;object-fit:contain;background:#07101a;border-radius:8px;transform:scaleX(-1)}#eyeProgress{width:100%;accent-color:var(--cy)}#wellSummary dt{color:var(--cy);font-weight:600}#wellSummary dd{margin:3px 0 12px;color:var(--fg)}#eyeInline{margin:8px 0 14px;padding:10px;border:1px solid rgba(var(--rgb),.25);border-radius:8px}#eyeInline h3{margin:0;font-size:16px}#eyeInline p{margin:5px 0}#eyeVideo{max-height:100px}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<header id="top"><b>ATLAS</b><span id="clk">Well-being assessments</span><span id="stbar">● PROTOTYPE</span></header>
+
+<section class="v" id="v-pvt"><div class="card"><div class="in">
+  <h2>Reaction time</h2>
+  <p class="s">Tap when the target appears. There are 5 PVT-inspired practice attempts, without clinical interpretation.</p>
+  <button id="pvBtn" aria-label="Reaction radar"><svg viewBox="0 0 240 240">
+    <defs><linearGradient id="sgd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--cy);stop-opacity:0"/><stop offset="1" style="stop-color:var(--cy);stop-opacity:.5"/></linearGradient></defs>
+    <circle class="rg" cx="120" cy="120" r="108"/><circle class="rg" cx="120" cy="120" r="78"/><circle class="rg" cx="120" cy="120" r="48"/><path class="rg" d="M12 120H228M120 12V228"/>
+    <g class="sw"><path d="M120 120L120 12A108 108 0 0 1 196 44Z" fill="url(#sgd)"/></g>
+    <circle id="pvArc" cx="120" cy="120" r="114" fill="none" style="stroke:var(--cy)" stroke-width="4" stroke-dasharray="716.3" stroke-dashoffset="716.3" transform="rotate(-90 120 120)"/>
+    <g id="bl" style="display:none"><circle class="ping" r="8" fill="none" stroke="#fff" stroke-width="2"/><circle r="5" fill="#fff"/></g>
+  </svg><span id="pvTxt">Tap to start</span></button>
+  <div class="row"><span id="pvC">Ready</span><span>Practice · 5 attempts</span></div>
+  <svg id="pvBars" viewBox="0 0 220 60"></svg>
+  <div class="res" id="pvRes"></div>
+  <button class="btn" id="pvSend" hidden>Continue to well-being check-in</button>
+</div></div></section>
+
+<section class="v on" id="v-ams"><div class="card"><div class="in">
+  <h2>Well-being check-in</h2>
+ <div id="eyeInline">
+  <h3>Automatic eye observation</h3>
+  <p class="n">Look straight ahead for 30 seconds. Your browser may request camera permission.</p>
+  <video id="eyeVideo" aria-label="Camera preview" playsinline muted hidden></video>
+  <progress id="eyeProgress" max="30" value="0" aria-label="Seconds observed" hidden></progress>
+  <p id="eyeStatus" class="res" role="status">Preparing the model…</p>
+  <p class="n">Frames are processed on this device. Only this session's indicators are displayed.</p>
+  <p class="n" id="eyeOutside" hidden>This Figma view blocks the camera. <a href="/?bienestar=1" target="_blank" rel="noopener">Open this check-in with camera access</a>. Complete the entire assessment there to bring your results together.</p>
+</div>
+  <div id="amsIntro">
+    <div class="res">Answer 12 questions about fatigue, sleep, concentration, and mood. ATLAS can read each question aloud. You will see a summary of your responses in this session.</div>
+    <div class="n" id="amsNote"></div>
+    <button class="btn" id="amsStart">Start with Atlas</button>
+  </div>
+  <div id="amsBox" hidden>
+    <div class="row"><span id="amsN">1 of 12</span><span>0 not at all, 10 very much</span></div>
+    <div id="amsT"></div>
+    <svg id="dial" viewBox="0 0 300 170" tabindex="0" role="slider" aria-label="Value from 0 to 10" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5">
+      <text id="dvT" x="150" y="140" text-anchor="middle" style="font-size:54px;font-weight:600;fill:#fff">5</text>
+      <text x="150" y="164" text-anchor="middle" style="font-size:15px;fill:var(--mut)">out of 10</text>
+    </svg>
+    <svg id="wave" viewBox="0 0 300 24"></svg>
+    <button class="btn" id="amsNext">Next</button>
+    <div class="two"><button class="btn g" id="amsRep">Listen again</button><button class="btn g" id="amsMute">Mute voice</button></div>
+  </div>
+  <div id="amsEnd" hidden>
+    <div class="res" id="amsTop"></div>
+    <svg id="prof" viewBox="0 0 260 232" role="img" aria-label="Self-report summary"></svg>
+    
+    <div class="res" id="amsRes"></div>
+    <div class="n">Descriptive summary of your self-report. Reaction times are shown separately.</div>
+    <div class="two"><button class="btn g" id="amsListen">Listen to summary</button><button class="btn g" id="amsAgain">Repeat check-in</button></div>
+  </div>
+</div></div></section>
+
+<section class="v" id="v-phq"><div class="card"><div class="in"><h2>Depression</h2><p>Over the last two weeks, how often have you been bothered by the following problems?</p><form id="phqForm"><label for="phq1">Little interest or pleasure in doing things</label><select id="phq1" required></select><label for="phq2">Feeling down, depressed, or hopeless</label><select id="phq2" required></select><button class="btn" type="submit">View result</button></form><p id="phqResult" class="res" role="status" hidden></p><p class="n">Screening for guidance only. Your score is shown only in this session. <a href="https://med.stanford.edu/content/dam/sm/ppc/documents/Mental_Health/PHQ-2_Spanish.pdf" target="_blank" rel="noopener noreferrer">Questionnaire source</a></p></div></div></section>
+
+<section class="v" id="v-summary"><div class="card"><div class="in">
+  <h2>Session summary</h2>
+  <p>Review the signals together. Results from each source retain their own scale.</p>
+  <dl id="wellSummary"><dt>Well-being self-report</dt><dd id="sumSurvey">Not completed</dd><dt>Eye observation</dt><dd id="sumEyes">Not completed</dd><dt>Reaction practice</dt><dd id="sumReaction">Not completed</dd><dt>Depression screening</dt><dd id="sumMood">Not completed</dd></dl>
+</div></div></section>
+<nav id="nav" aria-label="Well-being assessments">
+  <button data-v="pvt"><i>◎</i>Reaction</button>
+  <button class="on" data-v="ams"><i>≋</i>Well-being</button>
+  <button data-v="phq">Depression</button>
+  <button data-v="summary">Summary</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+/* ---------- Estado visual de Atlas ---------- */
+const S={calm:{n:"Stable",ic:'●',c:0x5ad1ff,amp:.12,br:1},warn:{n:"Monitor",ic:'▲',c:0xffb454,amp:.24,br:2.2},alert:{n:"Alert",ic:'◆',c:0xff6b6b,amp:.4,br:3.2}};
+function setState(k){
+ const s=S[k];tgt?.set(s.c);ampT=s.amp;brT=s.br;
+ document.documentElement.style.setProperty('--rgb',[s.c>>16&255,s.c>>8&255,s.c&255].join());
+ $('stbar').textContent="● PROTOTYPE";
+}
+
+/* ---------- Escena 3D ---------- */
+let R,sc,cam,cur,tgt,om,orbG,core,rings,ampT=.12,brT=1;
+try {
+R=new THREE.WebGLRenderer({canvas:$('c'),antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));
+sc=new THREE.Scene();cam=new THREE.PerspectiveCamera(50,1,.1,100);
+cur=new THREE.Color(0x5ad1ff);tgt=cur.clone();
+function fib(n){const a=new Float32Array(n*3);for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),p=i*2.39996;a[i*3]=Math.cos(p)*r;a[i*3+1]=y;a[i*3+2]=Math.sin(p)*r}return a}
+const og=new THREE.BufferGeometry();og.setAttribute('position',new THREE.BufferAttribute(fib(3500),3));
+om=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+ uniforms:{t:{value:0},amp:{value:.12},br:{value:1},col:{value:cur.clone()},px:{value:R.getPixelRatio()}},
+ vertexShader:'uniform float t,amp,br,px;void main(){vec3 p=position;float n=sin(p.x*3.+t)*sin(p.y*3.+t*1.3)*sin(p.z*3.+t*.7);p+=normalize(p)*n*amp;p*=1.+.05*sin(t*br*2.);vec4 m=modelViewMatrix*vec4(p*1.5,1.);gl_PointSize=15.*px/(-m.z);gl_Position=projectionMatrix*m;}',
+ fragmentShader:'uniform vec3 col;void main(){float d=length(gl_PointCoord-.5);if(d>.5)discard;gl_FragColor=vec4(col,smoothstep(.5,0.,d)*.9);}'});
+orbG=new THREE.Group();orbG.add(new THREE.Points(og,om));
+core=new THREE.Mesh(new THREE.SphereGeometry(.55,24,24),new THREE.MeshBasicMaterial({color:0x5ad1ff,transparent:true,opacity:.16}));orbG.add(core);
+rings=[2.3,2.7].map((r,i)=>{const m=new THREE.Mesh(new THREE.TorusGeometry(r,.005,6,160),new THREE.MeshBasicMaterial({color:0x5ad1ff,transparent:true,opacity:.35}));m.rotation.x=1.2+i*.5;orbG.add(m);return m});
+
+
+sc.add(orbG);
+const sp=new Float32Array(900);for(let i=0;i<900;i++)sp[i]=(Math.random()-.5)*60;
+const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+sc.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x9fb4d8,size:.06,transparent:true,opacity:.6})));
+} catch {
+ R=null;
+ $('c').hidden=true;
+}
+
+/* ---------- Vistas ---------- */
+let view='ams',tS=1,tY=.7,gS=1,gY=.7,pvM=0;
+function go(v){
+ if(view==='ams'&&v!=='ams'&&eyeActive)stopEyes("Measurement interrupted when leaving Well-being.");
+ if(v==='summary')renderSession();
+ if(view==='pvt'&&v!=='pvt')cancelPvt();
+ if(view!==v&&'speechSynthesis' in window)speechSynthesis.cancel();speaking=false;
+ view=v;
+ if(v==='ams'&&!session.eyes&&!eyeActive&&!document.hidden)void measureEyes();
+ document.querySelectorAll('.v').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+ if(v==='ams')$('amsNote').textContent="Responses are not saved when you close this screen.";
+}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+document.querySelectorAll('.card').forEach(c=>{
+ c.onpointermove=e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform='perspective(800px) rotateY('+x*5+'deg) rotateX('+(-y*5)+'deg)';c.style.setProperty('--gx',(x+.5)*100+'%');c.style.setProperty('--gy',(y+.5)*100+'%')};
+ c.onpointerleave=()=>{c.style.transform='';c.style.removeProperty('--gx');c.style.removeProperty('--gy')};
+});
+let drag=null;const cv=$('c');
+cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!drag||!R)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;orbG.rotation.y+=dx*.008;orbG.rotation.x=Math.max(-.8,Math.min(.8,orbG.rotation.x+dy*.005));drag={x:e.clientX,y:e.clientY}};
+cv.onpointerup=()=>drag=null;
+
+/* ---------- PVT como radar ---------- */
+let pv={n:0,rt:[],ph:'idle',t0:0,to:0,early:0,missed:0},raf=0;
+const pb=$('pvBtn'),pt=$('pvTxt'),arc=$('pvArc'),bl=$('bl'),CC=716.3;
+function cancelPvt(){if(pv.ph==='idle')return;clearTimeout(pv.to);cancelAnimationFrame(raf);pv.ph='idle';pb.className='';bl.style.display='none';pt.textContent="Tap to start";$('pvC').textContent="Practice interrupted";}
+function arcRun(){arc.style.strokeDashoffset=CC*(1-Math.min(1,(performance.now()-pv.t0)/3000));if(pv.ph==='go')raf=requestAnimationFrame(arcRun);}
+function pvStart(){if('speechSynthesis' in window)speechSynthesis.cancel();pv={n:0,rt:[],ph:'idle',t0:0,to:0,early:0,missed:0};$('pvRes').textContent='';$('pvBars').innerHTML='';$('pvSend').hidden=true;pvNext();}
+function pvNext(){if(pv.n>=5)return pvEnd();pv.ph='wait';bl.style.display='none';arc.style.strokeDashoffset=CC;pt.textContent="Wait…";$('pvC').textContent="Attempt "+(pv.n+1)+" of 5";pv.to=setTimeout(()=>{const a=Math.random()*6.28,r=25+Math.random()*60;bl.setAttribute('transform','translate('+(120+r*Math.cos(a))+' '+(120+r*Math.sin(a))+')');bl.style.display='';pv.ph='go';pb.className='go';pt.textContent="Now!";pv.t0=performance.now();arcRun();pv.to=setTimeout(()=>{pv.missed++;advancePvt("No response");},3000);},1500+Math.random()*3500);}
+function advancePvt(label){clearTimeout(pv.to);cancelAnimationFrame(raf);pv.n++;pt.textContent=label;pv.ph='pause';pb.className='';bl.style.display='none';pv.to=setTimeout(pvNext,650);}
+function pvEnd(){pv.ph='idle';const r=[...pv.rt].sort((a,b)=>a-b);const mid=Math.floor(r.length/2);const median=!r.length?null:r.length%2?r[mid]:Math.round((r[mid-1]+r[mid])/2);pt.textContent=median===null?"No valid times":median+' ms';$('pvRes').textContent=(median===null?"No valid times.":"Median: "+median+' ms.')+" Valid responses: "+r.length+". Early responses: "+pv.early+". No response: "+pv.missed+'.';$('pvSend').hidden=false;$('pvC').textContent="Practice complete";session.reaction=$('pvRes').textContent;renderSession();}
+pb.onclick=()=>{if(pv.ph==='idle')return pvStart();if(pv.ph==='wait'){pv.early++;advancePvt("Early response");return;}if(pv.ph==='go'){const r=Math.round(performance.now()-pv.t0);if(r<100){pv.early++;advancePvt("Early response");return;}pv.rt.push(r);advancePvt(r+' ms');}};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelPvt();});
+$('pvSend').onclick=()=>go('ams');
+
+/* ---------- Voz de Atlas ---------- */
+let speaking=false,muted=false,sid=0;
+function speak(t){
+ if(muted||!('speechSynthesis' in window))return;
+ speechSynthesis.cancel();const id=++sid;
+ const u=new SpeechSynthesisUtterance(t),vs=speechSynthesis.getVoices(),v=vs.find(x=>/^en[-_]US/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang));
+ if(v)u.voice=v;u.lang=v?v.lang:'en-US';u.rate=.95;u.pitch=.9;
+ u.onstart=()=>{if(id===sid)speaking=true};u.onend=u.onerror=()=>{if(id===sid)speaking=false};
+ speechSynthesis.speak(u);
+}
+$('amsRep').onclick=()=>speak($('amsT').textContent);
+$('amsMute').onclick=()=>{muted=!muted;$('amsMute').textContent=muted?"Enable voice":"Mute voice";if(muted){if('speechSynthesis' in window)speechSynthesis.cancel();speaking=false}else speak($('amsT').textContent)};
+
+/* ---------- Modelo psicométrico ---------- */
+const DIM=["Fatigue","Stress","Low mood","Loneliness","Attention difficulty"];
+/* [pregunta, 1 si un valor alto es malo, peso en cada dimensión] */
+const Q=[
+ ["How much stress do you feel right now?",1,[0,1,0,0,0]],
+ ["How heavy does your workload feel?",1,[.3,.8,0,0,0]],
+ ["How calm do you feel?",0,[0,.8,0,0,0]],
+ ["How tired do you feel?",1,[1,0,0,0,0]],
+ ["How well did you sleep last night?",0,[.7,0,.2,0,0]],
+ ["How alert do you feel?",0,[.4,0,0,0,.7]],
+ ["How easy is it to concentrate?",0,[.3,0,0,0,1]],
+ ["How good is your mood?",0,[0,0,1,0,0]],
+ ["How happy do you feel?",0,[0,0,.8,0,0]],
+ ["How interested do you feel in what you are doing?",0,[0,0,.9,0,.2]],
+ ["How lonely do you feel?",1,[0,0,.3,1,0]],
+ ["How connected do you feel to the crew?",0,[0,0,0,.9,0]]
+];
+let ai=0,av=[];
+function summarize(){return [av[3],av[0],10-av[7],av[10],10-av[6]].map(v=>v/10);}
+const col=()=> '#5ad1ff';
+const PT=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/5;return (130+r*Math.cos(a)).toFixed(1)+','+(122+r*Math.sin(a)).toFixed(1)};
+function drawProf(x,p){
+ let h='';
+ [.25,.5,.75,1].forEach(f=>h+='<polygon class="g" points="'+DIM.map((_,i)=>PT(i,78*f)).join(' ')+'"/>');
+ DIM.forEach((n,i)=>{const a=-Math.PI/2+i*2*Math.PI/5,cx=Math.cos(a),v=Math.round(x[i]*100),lx=130+101*cx,ly=122+101*Math.sin(a),an=cx>.3?'start':cx<-.3?'end':'middle';
+  h+='<path class="g" d="M130 122L'+PT(i,78)+'"/><text x="'+lx+'" y="'+(ly+2)+'" text-anchor="'+an+'" style="font-size:13px;fill:#dff6ff">'+n+'</text><text x="'+lx+'" y="'+(ly+15)+'" text-anchor="'+an+'" style="font-size:12px;fill:'+col(v)+'">'+Math.round(v/10)+'/10'+'</text>'});
+ if(p)h+='<polygon points="'+p.map((v,i)=>PT(i,78*v)).join(' ')+'" fill="none" stroke="#7fa4bd" stroke-dasharray="4 3"/>';
+ h+='<polygon points="'+x.map((v,i)=>PT(i,78*v)).join(' ')+'" style="fill:rgba(var(--rgb),.22);stroke:var(--cy)" stroke-width="2"/>'+x.map((v,i)=>{const q=PT(i,78*v).split(',');return '<circle cx="'+q[0]+'" cy="'+q[1]+'" r="3.5" fill="'+col(v*100)+'"/>'}).join('');
+ $('prof').innerHTML=h;
+}
+function finish(){const values=summarize();$('amsBox').hidden=true;$('amsEnd').hidden=false;drawProf(values);$('amsTop').textContent="Summary of your responses";$('amsRes').textContent="Fatigue: "+av[3]+"/10. Sleep quality: "+av[4]+"/10. Stress: "+av[0]+"/10. The chart shows these signals as self-reported values.";session.survey=[...av];renderSession();speak("Check-in complete. Your summary is on screen.");}
+$('amsListen').onclick=()=>speak("Your well-being summary is on screen.");
+const phqOptions=["Not at all","Several days","More than half the days","Nearly every day"];
+for(const id of ['phq1','phq2']){const select=$(id);select.add(new Option("Select a frequency",''));phqOptions.forEach((label,i)=>select.add(new Option(label,String(i))));select.onchange=()=>$('phqResult').hidden=true;}
+$('phqForm').onsubmit=(event)=>{event.preventDefault();const score=Number($('phq1').value)+Number($('phq2').value);const result=$('phqResult');result.textContent="Depression screening: "+score+" out of 6. "+(score>=3?"The result suggests further assessment with a health professional.":"The result is below the screening threshold. If symptoms concern you or persist, discuss them with a health professional.");result.hidden=false;session.mood=score;renderSession();};
+
+/* ---------- Dial ---------- */
+const D=$('dial'),R_={value:5};let dv=5;
+(function(){let h='';for(let i=0;i<11;i++){const a0=Math.PI+i*Math.PI/11+.025,a1=Math.PI+(i+1)*Math.PI/11-.025,P=(r,a)=>(150+r*Math.cos(a))+' '+(150+r*Math.sin(a));h+='<path d="M'+P(128,a0)+'A128 128 0 0 1 '+P(128,a1)+'L'+P(96,a1)+'A96 96 0 0 0 '+P(96,a0)+'Z"/>'}D.insertAdjacentHTML('afterbegin',h)})();
+function setDial(v){dv=R_.value=v;$("amsNext").disabled=false;D.querySelectorAll('path').forEach((p,i)=>p.classList.toggle('on',(i+.5)/11<=v/10+.05));$('dvT').textContent=v;D.setAttribute('aria-valuenow',v)}
+function dpt(e){const r=D.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*300-150,y=(e.clientY-r.top)/r.height*170-150;let a=Math.atan2(y,x);if(y>0)a=x<0?-Math.PI:0;setDial(Math.max(0,Math.min(10,Math.round((a+Math.PI)/Math.PI*10))))}
+let dd=false;D.onpointerdown=e=>{D.setPointerCapture(e.pointerId);dd=true;dpt(e)};D.onpointermove=e=>{if(dd)dpt(e)};D.onpointerup=()=>dd=false;
+D.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowUp')setDial(Math.min(10,dv+1));if(e.key==='ArrowLeft'||e.key==='ArrowDown')setDial(Math.max(0,dv-1))};
+const wv=$('wave');wv.innerHTML=Array.from({length:40},(_,i)=>'<rect x="'+(i*7.5)+'" width="5" rx="2"/>').join('');const wr=[...wv.children];
+function amsShow(talk){
+ $('amsN').textContent=(ai+1)+" of "+Q.length;$('amsT').textContent=Q[ai][0];
+ setDial(5);$('amsNext').disabled=true;$('amsNext').textContent=ai===Q.length-1?"View summary":"Next";
+ if(talk)speak((ai===0?"Hello, I'm Atlas. Answer from zero to ten. ":'')+Q[ai][0]);
+}
+$('amsStart').onclick=()=>{ai=0;av=[];$('amsIntro').hidden=true;$('amsBox').hidden=false;amsShow(true)};
+$('amsNext').onclick=()=>{av.push(+R_.value);ai++;if(ai>=Q.length)finish();else amsShow(true)};
+$('amsAgain').onclick=()=>{ai=0;av=[];$('amsEnd').hidden=true;$('amsBox').hidden=false;amsShow(true)};
+
+/* ---------- Bucle ---------- */
+function size(){if(!R){fit();return}const w=innerWidth,h=innerHeight,a=w/h;R.setSize(w,h,false);cam.aspect=a;cam.position.z=6+(a<1?(1-a)*5.5:0);cam.updateProjectionMatrix()}
+addEventListener('resize',size);size();
+/* el orbe conserva su tamaño y posición originales; es el panel el que se ajusta debajo */
+const POSE={big:[1,.7],small:[.42,1.9]};
+function fit(){
+ if(!R){document.documentElement.style.setProperty('--inH','60vh');return}
+ const big=view==='ams'&&!$('amsIntro').hidden,p=big?POSE.big:POSE.small;tS=p[0];tY=p[1];
+ if(big){document.documentElement.style.setProperty('--inH','9999px');return}
+ const H=2*cam.position.z*Math.tan(cam.fov*Math.PI/360),ppu=innerHeight/H;
+ const bottom=innerHeight/2-p[1]*ppu+1.75*p[0]*ppu;
+ document.documentElement.style.setProperty('--inH',Math.max(200,innerHeight-($('nav').offsetHeight+14)-bottom-36)+'px');
+}
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function loop(ts){
+ if(!R)return;
+ requestAnimationFrame(loop);const t=reduce?0:ts/1000;
+ cur.lerp(tgt,.05);om.uniforms.col.value.copy(cur);core.material.color.copy(cur);rings.forEach(r=>r.material.color.copy(cur));
+ const u=om.uniforms,vo=speaking?.14*(.5+.5*Math.sin(t*14)):0;u.amp.value+=(ampT+vo-u.amp.value)*.05;u.br.value+=(brT-u.br.value)*.05;u.t.value=t;
+ fit();gS+=(tS-gS)*.08;gY+=(tY-gY)*.08;orbG.scale.setScalar(gS);orbG.position.y=gY;
+ if(!drag&&!reduce)orbG.rotation.y+=.0025;
+ rings[0].rotation.z=t*.2;rings[1].rotation.z=-t*.15;
+ if(view==='ams')wr.forEach((r,i)=>{const h=speaking?3+9*Math.abs(Math.sin(t*7+i*.55))*(.5+.5*Math.sin(t*2+i)):1.5;r.setAttribute('height',h*2);r.setAttribute('y',12-h)});
+ R.render(sc,cam);
+}
+const session = { survey: null, eyes: null, reaction: null, mood: null };
+function renderSession(){
+ const {survey,eyes,reaction,mood}=session;
+ $('sumSurvey').textContent=survey ? "Fatigue "+survey[3]+"/10 · Sleep "+survey[4]+"/10 · Stress "+survey[0]+"/10 · Mood "+survey[7]+"/10 · Concentration "+survey[6]+'/10.' : "Not completed";
+ $('sumEyes').textContent=eyes ? eyes : "Not completed";
+ $('sumReaction').textContent=reaction ? reaction : "Not completed";
+ $('sumMood').textContent=mood === null ? "Not completed" : mood+" out of 6. "+(mood>=3 ? "Further assessment with a professional is recommended." : "Below the screening threshold.");
+}
+
+const eyeVideo=$('eyeVideo'),eyeProgress=$('eyeProgress'),eyeStatus=$('eyeStatus');
+const visionBase='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21';
+const eyeModelUrl='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+let eyeModel, eyeLoading, eyeStream, eyeFrame=0, eyeRun=0, eyeActive=false;
+async function prepareEyeModel(){
+ if(eyeModel)return;
+ if(eyeLoading)return eyeLoading;
+ eyeStatus.textContent="Loading MediaPipe Face Landmarker…";
+ eyeLoading=(async()=>{
+   const {FaceLandmarker,FilesetResolver}=await import(visionBase+'/vision_bundle.mjs');
+   const files=await FilesetResolver.forVisionTasks(visionBase+'/wasm');
+   eyeModel=await FaceLandmarker.createFromOptions(files,{
+    baseOptions:{modelAssetPath:eyeModelUrl,delegate:'CPU'},runningMode:'VIDEO',numFaces:2,
+    outputFaceBlendshapes:true,minFaceDetectionConfidence:.65,minFacePresenceConfidence:.65,minTrackingConfidence:.65,
+   });
+
+ })();
+ try{await eyeLoading;}
+ catch{eyeStatus.textContent="The model could not load. Check your connection and try again.";}
+ finally{eyeLoading=null;}
+}
+function stopEyes(message){
+ eyeRun++;
+ cancelAnimationFrame(eyeFrame);
+ eyeStream?.getTracks().forEach(track=>track.stop());
+ eyeStream=null;
+ eyeVideo.srcObject=null;
+ eyeVideo.hidden=eyeProgress.hidden=true;
+ eyeActive=false;
+ if(message)eyeStatus.textContent=message;
+}
+async function measureEyes(){
+ const policy=document.permissionsPolicy||document.featurePolicy;
+ if(policy?.allowsFeature('camera')===false){
+  eyeStatus.textContent="The embedded Figma view blocks camera access.";
+  $('eyeOutside').hidden=false;
+  return;
+ }
+ const run=++eyeRun;
+ eyeActive=true;
+ try{await prepareEyeModel();}catch{}
+ if(run!==eyeRun)return;
+ if(!eyeModel){eyeActive=false;return;}
+ eyeStatus.textContent="Waiting for camera permission…";
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error('unavailable');
+  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
+  if(run!==eyeRun){stream.getTracks().forEach(track=>track.stop());return;}
+  eyeStream=stream;
+  for(const track of stream.getVideoTracks())track.addEventListener('ended',()=>{if(run===eyeRun)stopEyes("The camera disconnected.");});
+  eyeVideo.srcObject=stream;eyeVideo.hidden=false;
+  await eyeVideo.play();
+  if(run!==eyeRun)return;
+  eyeProgress.value=0;eyeProgress.hidden=false;
+  const alignmentStarted=performance.now();
+  let started=null, alignedSince=null;
+  let lastFrame=0,lastVideo=-1,lastValid=false,closedSince=null,validMs=0,closedMs=0,closures=0,counted=false;
+  let lastMessage='';
+  function sample(now){
+   if(run!==eyeRun)return;
+   if(started===null&&now-alignmentStarted>=20000){
+    stopEyes("No face was visible long enough to start. Return to Well-being with better lighting to try again.");
+    return;
+   }
+   if(started!==null&&now-started>=30000){
+    const coverage=Math.min(100,Math.round(validMs/300));
+    const result=validMs>=21000 ? Math.round(100*closedMs/validMs)+" % of time with estimated bilateral eye closure · "+closures+" closures of 0.5 s or longer · "+coverage+" % coverage." : "Insufficient measurement · "+coverage+" % coverage. Repeat with better lighting and only one visible face.";
+    session.eyes=result;renderSession();stopEyes(result);return;
+   }
+   if(now-lastFrame>=85&&eyeVideo.readyState>=2&&eyeVideo.currentTime!==lastVideo){
+    const step=lastFrame?now-lastFrame:0;
+    lastFrame=now;lastVideo=eyeVideo.currentTime;
+    try{
+     const result=eyeModel.detectForVideo(eyeVideo,now);
+     const categories=result.faceLandmarks.length===1 ? result.faceBlendshapes[0]?.categories : undefined;
+     const left=categories?.find(item=>item.categoryName==='eyeBlinkLeft')?.score;
+     const right=categories?.find(item=>item.categoryName==='eyeBlinkRight')?.score;
+     const valid=Number.isFinite(left)&&Number.isFinite(right);
+     const closed=valid&&left>=.65&&right>=.65;
+     if(started===null){
+      alignedSince=valid?(alignedSince??now):null;
+      if(alignedSince!==null&&now-alignedSince>=1000)started=now;
+     }
+     if(started!==null&&now>started&&valid&&lastValid&&step>0&&step<=250){validMs+=step;if(closed&&closedSince!==null)closedMs+=step;}
+     if(!closed||step>250){closedSince=null;counted=false;}
+     if(closed&&started!==null){
+      closedSince??=now;
+      if(!counted&&now-closedSince>=500){closures++;counted=true;}
+     }
+     lastValid=valid;
+     const note=valid?(started===null?"Face detected. Preparing measurement…":"Measuring. Keep your face visible."):result.faceLandmarks.length>1?"Keep only one face in the frame.":"Center your face and improve the lighting.";
+     if(note!==lastMessage){eyeStatus.textContent=note;lastMessage=note;}
+    }catch{stopEyes("The model interrupted measurement. You can try again.");return;}
+    eyeProgress.value=started===null?0:(now-started)/1000;
+   }
+   eyeFrame=requestAnimationFrame(sample);
+  }
+  eyeFrame=requestAnimationFrame(sample);
+ }catch(error){
+  if(run!==eyeRun)return;
+  const messages={NotAllowedError:"The browser did not grant access. Allow the camera for this site and return to Well-being.",NotFoundError:"This browser did not detect a camera.",NotReadableError:"The camera could not be read. Check that another application is not using it."};
+  stopEyes(messages[error?.name]||"The camera could not start in this view.");
+  $('eyeOutside').hidden=true;
+ }
+}
+window.addEventListener('pagehide',()=>stopEyes());
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden&&eyeActive)stopEyes("Measurement interrupted when switching tabs.");
+ else if(!document.hidden&&view==='ams'&&!eyeActive&&!session.eyes&&eyeRun===0)void measureEyes();
+});
+
+setState('calm');setDial(5);go('ams');requestAnimationFrame(loop);
+</script>
+</body>
+</html>

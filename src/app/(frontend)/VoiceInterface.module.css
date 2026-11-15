@@ -1,0 +1,412 @@
+.interface {
+  position: relative;
+  isolation: isolate;
+  width: min(1180px, 100%);
+  min-height: calc(100vh - 132px);
+  margin: -10px auto 0;
+  overflow: hidden;
+  border: 1px solid #183442;
+  background:
+    radial-gradient(ellipse at center, transparent 15%, #02070dcc 92%),
+    linear-gradient(#11304422 1px, transparent 1px),
+    linear-gradient(90deg, #11304422 1px, transparent 1px), #030a10;
+  background-size:
+    auto,
+    64px 64px,
+    64px 64px,
+    auto;
+  color: #a8d3df;
+  font-family: 'Space Mono', monospace;
+  box-shadow: 0 24px 80px #0008;
+}
+
+.systemHeader,
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 34px;
+  color: #668d9a;
+  font-size: 8px;
+  letter-spacing: 0.18em;
+}
+
+.systemHeader {
+  min-height: 54px;
+  border-bottom: 1px solid #21404c;
+}
+
+.brand {
+  color: #d7faff;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+}
+
+.online,
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #83b6c2;
+}
+
+.online i,
+.tag i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #68e5d0;
+  box-shadow: 0 0 10px #68e5d0;
+}
+
+.hero {
+  padding-top: 28px;
+  text-align: center;
+}
+
+.hero > span {
+  color: #4d7f90;
+  font-size: 8px;
+  letter-spacing: 0.32em;
+}
+
+.hero h1 {
+  margin: 4px 0 7px;
+  padding-left: 0.3em;
+  color: #dcfaff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(30px, 4vw, 50px);
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 30px #6ddcff55;
+}
+
+.hero p {
+  color: #598b9b;
+  font-size: 8px;
+  letter-spacing: 0.32em;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 180px minmax(320px, 520px) 180px;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 34px;
+}
+
+.panel {
+  min-width: 0;
+  font-size: 9px;
+  line-height: 1.8;
+}
+
+.label {
+  margin: 19px 0 9px;
+  padding-top: 10px;
+  border-top: 1px solid #21404c;
+  color: #568696;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+}
+
+.value {
+  color: #cdf8ff;
+  font-size: 22px;
+}
+
+.value small {
+  color: #568696;
+  font-size: 8px;
+}
+
+.meter {
+  height: 3px;
+  margin: 9px 0 12px;
+  background: #13303c;
+}
+
+.meter span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: #7eefff;
+  box-shadow: 0 0 12px #42daff;
+}
+
+.panel dl {
+  margin: 0;
+}
+
+.panel dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0;
+  color: #6d9eac;
+}
+
+.panel dt,
+.panel dd {
+  margin: 0;
+}
+
+.panel dd {
+  color: #bdeaf2;
+  text-align: right;
+}
+
+.signal {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  gap: 2px;
+}
+
+.signal i {
+  width: 2px;
+  height: 3px;
+  background: #64dff5;
+  box-shadow: 0 0 5px #64dff5;
+}
+
+.small {
+  color: #4c7381;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin: auto;
+  aspect-ratio: 1;
+}
+
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #2f6b7c;
+}
+
+.topLeft {
+  top: 12%;
+  left: 7%;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.bottomRight {
+  right: 7%;
+  bottom: 12%;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.coreLabel {
+  position: absolute;
+  right: 0;
+  bottom: 7%;
+  left: 0;
+  color: #477987;
+  font-size: 7px;
+  letter-spacing: 0.16em;
+  text-align: center;
+}
+
+.coreLabel span {
+  color: #a8e9f2;
+}
+
+.tag {
+  width: max-content;
+  padding: 6px 8px;
+  border: 1px solid #28515d;
+  background: #0c1e27;
+  color: #94c9d3;
+  font-size: 8px;
+}
+
+.ready {
+  margin-top: 25px;
+}
+
+.controls {
+  padding: 0 34px 20px;
+  text-align: center;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.buttonRow button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 18px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.buttonRow svg {
+  width: 15px;
+}
+
+.micButton {
+  border: 1px solid #64deed;
+  background: #64deed;
+  color: #031015;
+  box-shadow: 0 0 24px #38cfe744;
+}
+
+.activeButton {
+  border: 1px solid #7f4a52;
+  background: #30171d;
+  color: #ff8992;
+}
+
+.testButton {
+  border: 1px solid #2b5967;
+  background: #0b1c25;
+  color: #79cad7;
+}
+
+.transcript {
+  min-height: 18px;
+  margin: 14px auto 0;
+  color: #a8d3df;
+  font-size: 10px;
+}
+
+.status {
+  min-height: 18px;
+  margin: 6px auto 0;
+  color: #6b9aa7;
+  font-size: 9px;
+}
+
+.privacy {
+  margin: 7px auto 0;
+  color: #405f6a;
+  font-size: 7px;
+}
+
+.footer {
+  min-height: 42px;
+  border-top: 1px solid #173641;
+}
+
+.footer time {
+  color: #a8d3df;
+  font-size: 9px;
+}
+
+@media (max-width: 980px) {
+  .workspace {
+    grid-template-columns: 150px minmax(280px, 430px) 150px;
+    padding-inline: 22px;
+  }
+
+  .systemHeader,
+  .footer {
+    margin-inline: 22px;
+  }
+
+  .controls {
+    padding-inline: 22px;
+  }
+}
+
+@media (max-width: 760px) {
+  .interface {
+    margin-top: -16px;
+  }
+
+  .systemEdition {
+    display: none;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stage {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    max-width: 430px;
+  }
+
+  .panel {
+    align-self: start;
+  }
+}
+
+@media (max-width: 520px) {
+  .systemHeader,
+  .footer {
+    margin-inline: 14px;
+  }
+
+  .online {
+    font-size: 0;
+  }
+
+  .hero {
+    padding-top: 22px;
+  }
+
+  .hero p {
+    padding-inline: 10px;
+    line-height: 1.7;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+    padding-inline: 16px;
+  }
+
+  .stage {
+    grid-column: auto;
+  }
+
+  .panel {
+    width: 100%;
+  }
+
+  .buttonRow {
+    flex-direction: column;
+  }
+
+  .buttonRow button {
+    width: 100%;
+  }
+
+  .footer span:first-child {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buttonRow button {
+    transition: none;
+  }
+}
